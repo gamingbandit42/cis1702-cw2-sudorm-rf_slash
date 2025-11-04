@@ -5,4 +5,4 @@
 
 # inventory management system
 
-
+print("Hello, World")
