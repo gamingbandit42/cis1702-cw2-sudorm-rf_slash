@@ -7,7 +7,7 @@ import sys
 Command-Line Inventory Management System
 
 """
-
+# Notes from banditdev: Could do with some comments to assist with maintainability but I do think we could work with what we have so far.
 
 DATA_FILE = "inventory.json"
 
@@ -22,7 +22,7 @@ def load_data():
                 return data
     except Exception:
         pass
-    # If file corrupted or not a list, back it up and start fresh
+
     try:
         os.rename(DATA_FILE, DATA_FILE + ".bak")
         print(f"Warning: {DATA_FILE} was invalid and was backed up to {DATA_FILE + '.bak'}. Starting fresh.")
@@ -39,7 +39,7 @@ def save_data(inventory):
         print("Error saving data:", e)
 
 
-def print_menu():
+def print_menu(): 
     print("\nInventory Management")
     print("--------------------")
     print("1) Add Item")
