@@ -1,48 +1,57 @@
-import json
+import csv
 import os
 import sys
 
-# Candidate A version created by AlexandruNegulescu
-#!/usr/bin/env python3
+# Candidate B version created by Banditdev
 """
-Command-Line Inventory Management System
-
+Command-Line Inventory Management System (CSV Version) (Candidate B)
 """
-# Notes from banditdev: Could do with some comments to assist with maintainability but I do think we could work with what we have so far.
 
-DATA_FILE = "inventory.json"
-
+DATA_FILE = "inventory.csv"
+FIELDNAMES = ["id", "name", "price", "quantity"]
 
 def load_data():
+    """Loads inventory data from the CSV file."""
     if not os.path.exists(DATA_FILE):
         return []
     try:
-        with open(DATA_FILE, "r", encoding="utf-8") as f:
-            data = json.load(f)
-            if isinstance(data, list):
-                return data
-    except Exception:
-        pass
-
-    try:
-        os.rename(DATA_FILE, DATA_FILE + ".bak")
-        print(f"Warning: {DATA_FILE} was invalid and was backed up to {DATA_FILE + '.bak'}. Starting fresh.")
-    except Exception:
-        print(f"Warning: {DATA_FILE} unreadable. Starting with empty inventory.")
-    return []
-
+        with open(DATA_FILE, "r", newline="", encoding="utf-8") as f:
+            reader = csv.DictReader(f)
+            data = []
+            for row in reader:
+                # Convert types as CSV reads everything as strings
+                try:
+                    # Ensure all fields exist
+                    if not all(k in row for k in FIELDNAMES):
+                        continue
+                    
+                    item = {
+                        "id": row["id"],
+                        "name": row["name"],
+                        "price": float(row["price"]),
+                        "quantity": int(row["quantity"])
+                    }
+                    data.append(item)
+                except ValueError:
+                    continue # Skip rows with invalid number formats
+            return data
+    except Exception as e:
+        print(f"Warning: Could not read {DATA_FILE}. Starting with empty inventory. Error: {e}")
+        return []
 
 def save_data(inventory):
+    """Saves inventory data to the CSV file."""
     try:
-        with open(DATA_FILE, "w", encoding="utf-8") as f:
-            json.dump(inventory, f, indent=2, ensure_ascii=False)
+        with open(DATA_FILE, "w", newline="", encoding="utf-8") as f:
+            writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
+            writer.writeheader()
+            writer.writerows(inventory)
     except Exception as e:
         print("Error saving data:", e)
 
-
 def print_menu(): 
-    print("\nInventory Management")
-    print("--------------------")
+    print("\nInventory Management (CSV)")
+    print("--------------------------")
     print("1) Add Item")
     print("2) View Stock")
     print("3) Update Item")
@@ -53,7 +62,6 @@ def print_menu():
     print("8) Save & Exit")
     print("9) Exit without Saving")
 
-
 def input_nonempty(prompt):
     while True:
         s = input(prompt).strip()
@@ -61,13 +69,11 @@ def input_nonempty(prompt):
             return s
         print("Input cannot be empty.")
 
-
 def find_by_id(inventory, item_id):
     for item in inventory:
         if item.get("id") == item_id:
             return item
     return None
-
 
 def generate_unique_id(inventory):
     # Generate numeric incremental ID as string
@@ -79,7 +85,6 @@ def generate_unique_id(inventory):
             pass
     next_id = max(ids) + 1 if ids else 1
     return str(next_id)
-
 
 def add_item(inventory):
     print("\nAdd Item")
@@ -120,7 +125,6 @@ def add_item(inventory):
     inventory.append({"id": item_id, "name": name, "price": price, "quantity": quantity})
     print(f"Added item {item_id} - {name}.")
 
-
 def format_table(rows, headers):
     # compute widths
     cols = list(zip(*([headers] + rows))) if rows else [[h] for h in headers]
@@ -133,7 +137,6 @@ def format_table(rows, headers):
         out += sep.join(str(c).ljust(w) for c, w in zip(r, widths)) + "\n"
     return out
 
-
 def view_stock(inventory):
     if not inventory:
         print("\nInventory is empty.")
@@ -143,7 +146,6 @@ def view_stock(inventory):
         rows.append([it.get("id"), it.get("name"), f"{it.get('price'):.2f}", it.get("quantity")])
     print("\nCurrent Stock")
     print(format_table(rows, ["ID", "Name", "Price", "Quantity"]))
-
 
 def update_item(inventory):
     if not inventory:
@@ -186,7 +188,6 @@ def update_item(inventory):
             print("Invalid quantity.")
     print("Item updated.")
 
-
 def remove_item(inventory):
     if not inventory:
         print("\nInventory is empty.")
@@ -203,7 +204,6 @@ def remove_item(inventory):
     else:
         print("Deletion cancelled.")
 
-
 def search_item(inventory):
     if not inventory:
         print("\nInventory is empty.")
@@ -218,7 +218,6 @@ def search_item(inventory):
         return
     print(f"\nSearch results for '{term}':")
     print(format_table(results, ["ID", "Name", "Price", "Quantity"]))
-
 
 def low_stock_report(inventory):
     if not inventory:
@@ -243,7 +242,6 @@ def low_stock_report(inventory):
         return
     print(f"\nLow-stock items (quantity < {threshold}):")
     print(format_table(low, ["ID", "Name", "Quantity"]))
-
 
 def main():
     inventory = load_data()
@@ -285,6 +283,6 @@ def main():
         except Exception as e:
             print("An error occurred:", e)
 
-
 if __name__ == "__main__":
     main()
+
