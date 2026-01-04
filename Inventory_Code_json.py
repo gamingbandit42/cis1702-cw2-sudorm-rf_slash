@@ -48,10 +48,11 @@ def print_menu():
     print("3) Update Item")
     print("4) Remove Item")
     print("5) Search by Name")
-    print("6) Low-stock Report")
-    print("7) Save")
-    print("8) Save & Exit")
-    print("9) Exit without Saving")
+    print("6) Search by Price Range")
+    print("7) Low-stock Report")
+    print("8) Save")
+    print("9) Save & Exit")
+    print("10) Exit without Saving")
 
 
 def input_nonempty(prompt):
@@ -219,6 +220,33 @@ def search_item(inventory):
     print(f"\nSearch results for '{term}':")
     print(format_table(results, ["ID", "Name", "Price", "Quantity"]))
 
+def search_price(inventory):
+    if not inventory:
+        print("\nInventory is empty.")
+        return
+    price_1, price_2= input_nonempty("Enter the lower and upper price limit: ").split()
+    price_range = float(price_1, price_2)
+    while True:
+        try:
+            if price_range < 0:
+                print("Price must be non-negative.")
+                continue
+            elif price_1 > price_2:
+                print("The first price must be less than or equal to the second price")
+                continue
+            break
+        except Exception:
+                print("Invalid price. Enter a number (e.g., 9.99).")
+                break
+    results = []
+    for it in inventory:
+        if price_range in it.get(price_1 < "price" < price_2):
+            results.append([it.get("id"), it.get("name"), f"{it.get('price'):.2f}", it.get("quantity")])
+    if not results:
+        print("No matching items found.")
+        return
+    print(f"\nSearch results for items priced between {price_1:.2f} and {price_2:.2f}:")
+    print(format_table(results, ["ID", "Name", "Price", "Quantity"]))
 
 def low_stock_report(inventory):
     if not inventory:
@@ -251,7 +279,7 @@ def main():
     while True:
         try:
             print_menu()
-            choice = input("Choose an option (1-9): ").strip()
+            choice = input("Choose an option (1-10): ").strip()
             if choice == "1":
                 add_item(inventory)
             elif choice == "2":
@@ -263,15 +291,17 @@ def main():
             elif choice == "5":
                 search_item(inventory)
             elif choice == "6":
-                low_stock_report(inventory)
+                search_price(inventory)
             elif choice == "7":
+                low_stock_report(inventory)
+            elif choice == "8":
                 save_data(inventory)
                 print("Saved.")
-            elif choice == "8":
+            elif choice == "9":
                 save_data(inventory)
                 print("Saved. Exiting.")
                 break
-            elif choice == "9":
+            elif choice == "10":
                 confirm = input("Exit without saving? (y/N): ").strip().lower()
                 if confirm == 'y':
                     print("Exiting without saving.")
