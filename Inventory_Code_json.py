@@ -224,28 +224,45 @@ def search_price(inventory):
     if not inventory:
         print("\nInventory is empty.")
         return
-    price_1, price_2= input_nonempty("Enter the lower and upper price limit: ").split()
-    price_range = float(price_1, price_2)
+
     while True:
         try:
-            if price_range < 0:
+            # 1. Convert inputs to floats immediately to allow for math comparisons
+            p1 = float(input_nonempty("Enter the lower price limit: "))
+            p2 = float(input_nonempty("Enter the upper price limit: "))
+
+            if p1 < 0 or p2 < 0:
                 print("Price must be non-negative.")
                 continue
-            elif price_1 > price_2:
-                print("The first price must be less than or equal to the second price")
+            if p1 > p2:
+                print("The first price must be less than or equal to the second price.")
                 continue
-            break
-        except Exception:
-                print("Invalid price. Enter a number (e.g., 9.99).")
-                break
+            
+            # If all checks pass, store them
+            low, high = p1, p2
+            break 
+        except ValueError:
+            print("Invalid price. Enter a number (e.g., 9.99).")
+
     results = []
     for it in inventory:
-        if price_range in it.get(price_1 < "price" < price_2):
-            results.append([it.get("id"), it.get("name"), f"{it.get('price'):.2f}", it.get("quantity")])
+        # 2. Get the actual price value from the dictionary
+        item_price = it.get("price", 0)
+        
+        # 3. Check if the item's price falls between the user's limits
+        if low <= item_price <= high:
+            results.append([
+                it.get("id"), 
+                it.get("name"), 
+                f"{item_price:.2f}", 
+                it.get("quantity")
+            ])
+
     if not results:
-        print("No matching items found.")
+        print(f"\nNo matching items found between {low:.2f} and {high:.2f}.")
         return
-    print(f"\nSearch results for items priced between {price_1:.2f} and {price_2:.2f}:")
+
+    print(f"\nSearch results for items priced between {low:.2f} and {high:.2f}:")
     print(format_table(results, ["ID", "Name", "Price", "Quantity"]))
 
 def low_stock_report(inventory):
