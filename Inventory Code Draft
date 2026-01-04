@@ -2,11 +2,8 @@ import json
 import os
 import sys
 
-#!/usr/bin/env python3
 """
 This is an inventory management system. It's simple and text-based, with the data being stored in a JSON file.
-
-
 Features:
 
 - Add, view, update, and remove items
@@ -150,7 +147,6 @@ def format_table(rows, headers):
         out += sep.join(str(c).ljust(w) for c, w in zip(r, widths)) + "\n"
 
     return out
-
 
 # This displays all inventory items in a table
 def view_stock(inventory):
