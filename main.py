@@ -5,4 +5,6 @@
 
 # inventory management system
 
-print("Hello, World")
+print("Welcome to the Inventory Management System")
+inventory = ["book", 2, "pen", 3, "notebook", 2]
+

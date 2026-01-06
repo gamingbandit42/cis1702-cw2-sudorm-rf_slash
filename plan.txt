@@ -1,2 +1,15 @@
 # PLAN:
 # 
+
+KEY MILESTONES:
+- Codebase ready for /dev to be synced to /test
+   DATE: TBD
+
+- Codebase ready for /test to be synced to /prod
+   DATE: TBD
+
+- Draft Report
+   DATE: TBD
+
+- Final Report
+   DATE: TBD
