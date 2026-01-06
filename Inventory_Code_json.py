@@ -1,66 +1,59 @@
-import csv
+import json
 import os
 import sys
 
-# Candidate B version created by Banditdev
+# Candidate A version created by AlexandruNegulescu
+#!/usr/bin/env python3
 """
-Command-Line Inventory Management System (CSV Version) (Candidate B)
-"""
+Command-Line Inventory Management System
 
-DATA_FILE = "inventory.csv"
-FIELDNAMES = ["id", "name", "price", "quantity"]
+"""
+# Notes from banditdev: Could do with some comments to assist with maintainability but I do think we could work with what we have so far.
+
+DATA_FILE = "inventory.json"
+
 
 def load_data():
-    """Loads inventory data from the CSV file."""
     if not os.path.exists(DATA_FILE):
         return []
     try:
-        with open(DATA_FILE, "r", newline="", encoding="utf-8") as f:
-            reader = csv.DictReader(f)
-            data = []
-            for row in reader:
-                # Convert types as CSV reads everything as strings
-                try:
-                    # Ensure all fields exist
-                    if not all(k in row for k in FIELDNAMES):
-                        continue
-                    
-                    item = {
-                        "id": row["id"],
-                        "name": row["name"],
-                        "price": float(row["price"]),
-                        "quantity": int(row["quantity"])
-                    }
-                    data.append(item)
-                except ValueError:
-                    continue # Skip rows with invalid number formats
-            return data
-    except Exception as e:
-        print(f"Warning: Could not read {DATA_FILE}. Starting with empty inventory. Error: {e}")
-        return []
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            if isinstance(data, list):
+                return data
+    except Exception:
+        pass
+
+    try:
+        os.rename(DATA_FILE, DATA_FILE + ".bak")
+        print(f"Warning: {DATA_FILE} was invalid and was backed up to {DATA_FILE + '.bak'}. Starting fresh.")
+    except Exception:
+        print(f"Warning: {DATA_FILE} unreadable. Starting with empty inventory.")
+    return []
+
 
 def save_data(inventory):
-    """Saves inventory data to the CSV file."""
     try:
-        with open(DATA_FILE, "w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=FIELDNAMES)
-            writer.writeheader()
-            writer.writerows(inventory)
+        with open(DATA_FILE, "w", encoding="utf-8") as f:
+            json.dump(inventory, f, indent=2, ensure_ascii=False)
     except Exception as e:
         print("Error saving data:", e)
 
+
 def print_menu(): 
-    print("\nInventory Management (CSV)")
-    print("--------------------------")
+    print("\nInventory Management")
+    print("--------------------")
     print("1) Add Item")
     print("2) View Stock")
     print("3) Update Item")
     print("4) Remove Item")
     print("5) Search by Name")
-    print("6) Low-stock Report")
-    print("7) Save")
-    print("8) Save & Exit")
-    print("9) Exit without Saving")
+    print("6) Search by Price Range")
+    print("7) Low-stock Report")
+    print("8) Save")
+    print("9) Save & Exit")
+    print("10) Exit without Saving")
+
 
 def input_nonempty(prompt):
     while True:
@@ -69,11 +62,13 @@ def input_nonempty(prompt):
             return s
         print("Input cannot be empty.")
 
+
 def find_by_id(inventory, item_id):
     for item in inventory:
         if item.get("id") == item_id:
             return item
     return None
+
 
 def generate_unique_id(inventory):
     # Generate numeric incremental ID as string
@@ -85,6 +80,7 @@ def generate_unique_id(inventory):
             pass
     next_id = max(ids) + 1 if ids else 1
     return str(next_id)
+
 
 def add_item(inventory):
     print("\nAdd Item")
@@ -125,6 +121,7 @@ def add_item(inventory):
     inventory.append({"id": item_id, "name": name, "price": price, "quantity": quantity})
     print(f"Added item {item_id} - {name}.")
 
+
 def format_table(rows, headers):
     # compute widths
     cols = list(zip(*([headers] + rows))) if rows else [[h] for h in headers]
@@ -137,6 +134,7 @@ def format_table(rows, headers):
         out += sep.join(str(c).ljust(w) for c, w in zip(r, widths)) + "\n"
     return out
 
+
 def view_stock(inventory):
     if not inventory:
         print("\nInventory is empty.")
@@ -146,6 +144,7 @@ def view_stock(inventory):
         rows.append([it.get("id"), it.get("name"), f"{it.get('price'):.2f}", it.get("quantity")])
     print("\nCurrent Stock")
     print(format_table(rows, ["ID", "Name", "Price", "Quantity"]))
+
 
 def update_item(inventory):
     if not inventory:
@@ -188,6 +187,7 @@ def update_item(inventory):
             print("Invalid quantity.")
     print("Item updated.")
 
+
 def remove_item(inventory):
     if not inventory:
         print("\nInventory is empty.")
@@ -204,6 +204,7 @@ def remove_item(inventory):
     else:
         print("Deletion cancelled.")
 
+
 def search_item(inventory):
     if not inventory:
         print("\nInventory is empty.")
@@ -217,6 +218,51 @@ def search_item(inventory):
         print("No matching items found.")
         return
     print(f"\nSearch results for '{term}':")
+    print(format_table(results, ["ID", "Name", "Price", "Quantity"]))
+
+def search_price(inventory):
+    if not inventory:
+        print("\nInventory is empty.")
+        return
+
+    while True:
+        try:
+            # 1. Convert inputs to floats immediately to allow for math comparisons
+            p1 = float(input_nonempty("Enter the lower price limit: "))
+            p2 = float(input_nonempty("Enter the upper price limit: "))
+
+            if p1 < 0 or p2 < 0:
+                print("Price must be non-negative.")
+                continue
+            if p1 > p2:
+                print("The first price must be less than or equal to the second price.")
+                continue
+            
+            # If all checks pass, store them
+            low, high = p1, p2
+            break 
+        except ValueError:
+            print("Invalid price. Enter a number (e.g., 9.99).")
+
+    results = []
+    for it in inventory:
+        # 2. Get the actual price value from the dictionary
+        item_price = it.get("price", 0)
+        
+        # 3. Check if the item's price falls between the user's limits
+        if low <= item_price <= high:
+            results.append([
+                it.get("id"), 
+                it.get("name"), 
+                f"{item_price:.2f}", 
+                it.get("quantity")
+            ])
+
+    if not results:
+        print(f"\nNo matching items found between {low:.2f} and {high:.2f}.")
+        return
+
+    print(f"\nSearch results for items priced between {low:.2f} and {high:.2f}:")
     print(format_table(results, ["ID", "Name", "Price", "Quantity"]))
 
 def low_stock_report(inventory):
@@ -243,13 +289,14 @@ def low_stock_report(inventory):
     print(f"\nLow-stock items (quantity < {threshold}):")
     print(format_table(low, ["ID", "Name", "Quantity"]))
 
+
 def main():
     inventory = load_data()
     print("Loaded", len(inventory), "items.")
     while True:
         try:
             print_menu()
-            choice = input("Choose an option (1-9): ").strip()
+            choice = input("Choose an option (1-10): ").strip()
             if choice == "1":
                 add_item(inventory)
             elif choice == "2":
@@ -261,15 +308,17 @@ def main():
             elif choice == "5":
                 search_item(inventory)
             elif choice == "6":
-                low_stock_report(inventory)
+                search_price(inventory)
             elif choice == "7":
+                low_stock_report(inventory)
+            elif choice == "8":
                 save_data(inventory)
                 print("Saved.")
-            elif choice == "8":
+            elif choice == "9":
                 save_data(inventory)
                 print("Saved. Exiting.")
                 break
-            elif choice == "9":
+            elif choice == "10":
                 confirm = input("Exit without saving? (y/N): ").strip().lower()
                 if confirm == 'y':
                     print("Exiting without saving.")
@@ -282,6 +331,7 @@ def main():
             print("\nInterrupted. Use menu to save and exit or exit without saving.")
         except Exception as e:
             print("An error occurred:", e)
+
 
 if __name__ == "__main__":
     main()
