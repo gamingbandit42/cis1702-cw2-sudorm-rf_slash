@@ -10,7 +10,7 @@ Command-Line Inventory Management System
 """
 # Notes from banditdev: Could do with some comments to assist with maintainability but I do think we could work with what we have so far.
 
-DATA_FILE = "inventory.json"
+DATA_FILE = "inventory.json" # will load inventory data from DATA_FILE. If it does not exist, will return an empty list, if it does exist but is corrupted, it will be backed up.
 
 
 def load_data():
@@ -32,7 +32,7 @@ def load_data():
     return []
 
 
-def save_data(inventory):
+def save_data(inventory): # saved to DATA_FILE in JSON format
     try:
         with open(DATA_FILE, "w", encoding="utf-8") as f:
             json.dump(inventory, f, indent=2, ensure_ascii=False)
@@ -40,7 +40,7 @@ def save_data(inventory):
         print("Error saving data:", e)
 
 
-def print_menu(): 
+def print_menu(): # commands used to display the main menu options
     print("\nInventory Management")
     print("--------------------")
     print("1) Add Item")
@@ -55,7 +55,7 @@ def print_menu():
     print("10) Exit without Saving")
 
 
-def input_nonempty(prompt):
+def input_nonempty(prompt): # should ensure the input cannot be empty 
     while True:
         s = input(prompt).strip()
         if s:
@@ -63,14 +63,14 @@ def input_nonempty(prompt):
         print("Input cannot be empty.")
 
 
-def find_by_id(inventory, item_id):
+def find_by_id(inventory, item_id): # Finding the item based on ID, returns "none" if non-existent
     for item in inventory:
         if item.get("id") == item_id:
             return item
     return None
 
 
-def generate_unique_id(inventory):
+def generate_unique_id(inventory): 
     # Generate numeric incremental ID as string
     ids = []
     for it in inventory:
@@ -82,7 +82,7 @@ def generate_unique_id(inventory):
     return str(next_id)
 
 
-def add_item(inventory):
+def add_item(inventory): # Adding a new item to the inventory and validating both the price and quantity.
     print("\nAdd Item")
     print("Leave ID blank to auto-generate.")
     raw_id = input("ID: ").strip()
@@ -135,7 +135,7 @@ def format_table(rows, headers):
     return out
 
 
-def view_stock(inventory):
+def view_stock(inventory): # This displays all inventory items in a table.
     if not inventory:
         print("\nInventory is empty.")
         return
@@ -146,7 +146,7 @@ def view_stock(inventory):
     print(format_table(rows, ["ID", "Name", "Price", "Quantity"]))
 
 
-def update_item(inventory):
+def update_item(inventory): # This updates an existing inventory item by ID
     if not inventory:
         print("\nInventory is empty.")
         return
@@ -188,7 +188,7 @@ def update_item(inventory):
     print("Item updated.")
 
 
-def remove_item(inventory):
+def remove_item(inventory): # This removes an item from the inventory after confirmation
     if not inventory:
         print("\nInventory is empty.")
         return
@@ -205,7 +205,7 @@ def remove_item(inventory):
         print("Deletion cancelled.")
 
 
-def search_item(inventory):
+def search_item(inventory): # This searches inventory items by name using a case-insensitive match
     if not inventory:
         print("\nInventory is empty.")
         return
@@ -265,7 +265,7 @@ def search_price(inventory):
     print(f"\nSearch results for items priced between {low:.2f} and {high:.2f}:")
     print(format_table(results, ["ID", "Name", "Price", "Quantity"]))
 
-def low_stock_report(inventory):
+def low_stock_report(inventory): # This generates a report of items below a specified quantity threshold.
     if not inventory:
         print("\nInventory is empty.")
         return
@@ -290,7 +290,7 @@ def low_stock_report(inventory):
     print(format_table(low, ["ID", "Name", "Quantity"]))
 
 
-def main():
+def main(): # This runs the main program loop and handles user input.
     inventory = load_data()
     print("Loaded", len(inventory), "items.")
     while True:
